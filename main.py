@@ -18,6 +18,11 @@ def parse_time(time_str):
 # https://stackoverflow.com/a/31976060/10217112
 def filter_title(title_str):
     result = title_str
+    result = result.replace("\n", " ")
+    result = result.replace("\r", " ")
+    result = result.replace("\t", " ")
+    result = result.replace("\b", " ")
+    result = result.replace("\f", " ")
     result = result.replace("<", "＜")
     result = result.replace(">", "＞")
     result = result.replace(":", "：")
@@ -26,6 +31,7 @@ def filter_title(title_str):
     result = result.replace("|", "｜")
     result = result.replace("?", "？")
     result = result.replace("*", "＊")
+    result = result.replace("\"", "＂")
     return result
 
 
