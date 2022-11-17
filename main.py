@@ -1,9 +1,7 @@
 import datetime
 import json
 import pathlib
-import random
 import sys
-import time
 import urllib.request
 
 
@@ -53,9 +51,17 @@ def is_exist(name):
     return pathlib.Path(name).exists()
 
 
+def safe_int(value):
+    try:
+        return int(value), True
+    except ValueError:
+        return 0, False
+
+
 def main():
     print(sys.argv)
-    if len(sys.argv) != 2:
+    argv_len = len(sys.argv)
+    if argv_len < 2:
         input("Error, Press Enter to exit")
         sys.exit()
     f = open(sys.argv[1], "r", encoding="utf-8")
@@ -65,9 +71,25 @@ def main():
     size = len(data)
     print(f"size={len(data)}")
 
+    index_start = 0
+    index_end = size - 1
+
+    if argv_len >= 3:
+        arg2, is_arg2_valid = safe_int(sys.argv[2])
+        if is_arg2_valid and arg2 < size:
+            index_start = arg2
+
+    if argv_len >= 4:
+        arg3, is_arg3_valid = safe_int(sys.argv[3])
+        if is_arg3_valid and index_start <= arg3 < size:
+            index_end = arg3
+
     current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    output_folder_name = f"output-{current_time}-{size}"
+    if argv_len > 2 and (index_start != 0 or index_end != size - 1):
+        output_folder_name = f"output-{current_time}[{size}][{index_start}-{index_end}]"
+    else:
+        output_folder_name = f"output-{current_time}[{size}]"
 
     create_folder(output_folder_name)
 
@@ -75,7 +97,7 @@ def main():
     fail_count = 0
 
     sorted_data = sorted(data, key=lambda x: x['created_at'])
-    for i in range(size):
+    for i in range(index_start, index_end + 1):
         title = filter_title(sorted_data[i]["title"])
         create_time = parse_time(sorted_data[i]["created_at"])
         download_url = sorted_data[i]["download_url"]
@@ -94,7 +116,9 @@ def main():
             print(f"{i} download failed: {file_name}")
             print(error)
             fail_count += 1
-    print(f"Download task finished! total: {size} success: {success_count} fail: {fail_count}")
+    print(f"Download task finished! ")
+    print(
+        f"[{index_start}-{index_end}] total: {index_end - index_start + 1} success: {success_count} fail: {fail_count}")
     input("Press Enter to exit")
 
 
